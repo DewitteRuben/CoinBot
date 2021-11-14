@@ -65,28 +65,44 @@ func NewBotTracker(config BotTrackerConfig, session *discordgo.Session) (BotTrac
 func (t *BotTracker) formatPrice(cData api.CoinData) string {
 	// TODO: dynamic currency symbol
 	currencySymbol := "$"
+	pChange, _ := t.getPriceChangePercentage(cData)
 	max6DecimalPlaces := math.Floor(cData.Price*1000000) / 1000000
 	formattedAmount := strconv.FormatFloat(max6DecimalPlaces, 'f', -1, 64)
-	return fmt.Sprintf("%s %s%s", strings.ToUpper(cData.Symbol), currencySymbol, formattedAmount)
-}
+	var changeDirectionSymbol string
 
-func (t *BotTracker) formatPriceChange(cData api.CoinData, config *BotTrackerConfig) string {
-	change := cData.DailyChangePercentage
-	abbreviation := config.Timespan
-
-	switch config.Timespan {
-	case "24h":
-		change = cData.DailyChangePercentage
-	case "1h":
-		change = cData.HourlyChangePercentage
-	case "7d":
-		change = cData.SevenDailyChangePercentage
-	default:
-		abbreviation = "24h"
-		log.Warn("an unknown price change timespan was given", config.Timespan, "defaulting to 24h")
+	// stonks or no stonks
+	if pChange >= 0 {
+		changeDirectionSymbol = "📈"
+	} else {
+		changeDirectionSymbol = "📉"
 	}
 
-	return fmt.Sprintf("%s: %s%%", abbreviation, strconv.FormatFloat(change, 'f', 2, 64))
+	return fmt.Sprintf("%s %s%s %s", strings.ToUpper(cData.Symbol), currencySymbol, formattedAmount, changeDirectionSymbol)
+}
+
+func (t *BotTracker) getPriceChangePercentage(cData api.CoinData) (float64, string) {
+	pChange := cData.DailyChangePercentage
+	abbr := t.config.Timespan
+
+	switch t.config.Timespan {
+	case "24h":
+		pChange = cData.DailyChangePercentage
+	case "1h":
+		pChange = cData.HourlyChangePercentage
+	case "7d":
+		pChange = cData.SevenDailyChangePercentage
+	default:
+		abbr = "24h"
+		log.Warn("an unknown price change timespan was given", t.config.Timespan, "defaulting to 24h")
+	}
+
+	return pChange, abbr
+}
+
+func (t *BotTracker) formatPriceChange(cData api.CoinData) string {
+	pChange, abbr := t.getPriceChangePercentage(cData)
+
+	return fmt.Sprintf("%s: %s%%", abbr, strconv.FormatFloat(pChange, 'f', 2, 64))
 }
 
 func (t *BotTracker) Track(intervals ...time.Duration) {
@@ -112,7 +128,7 @@ func (t *BotTracker) Track(intervals ...time.Duration) {
 				log.Error("Error occurred while updating bot nickname:", err)
 			}
 
-			formattedPriceChange := t.formatPriceChange(coinData, t.config)
+			formattedPriceChange := t.formatPriceChange(coinData)
 			err = t.discordAPI.UpdateBotActivity("online", discordgo.ActivityTypeWatching, formattedPriceChange)
 			if err != nil {
 				log.Error("Error occurred while updating bot nickname:", err)

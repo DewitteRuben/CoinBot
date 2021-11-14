@@ -20,8 +20,8 @@ var (
 )
 
 func init() {
-	flag.StringVar(&Token, "token", "OTA5MTg2MDU3NDQ1MjEyMTYw.YZAnfw.eDY8THNcwVdmgPGCiUWGWmK2OZI", "Bot Token")
-	flag.StringVar(&Coin, "coin", "curve-dao-token", "Coin to track")
+	flag.StringVar(&Token, "token", "", "Bot Token")
+	flag.StringVar(&Coin, "coin", "", "Coin to track")
 	flag.StringVar(&Currency, "currency", "usd", "Currency to represent coin in")
 	flag.StringVar(&PriceChangeTimespan, "pChange", "24h", "The price change timespan to look at")
 	flag.Parse()

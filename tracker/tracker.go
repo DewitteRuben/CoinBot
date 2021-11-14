@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 )
 
 type BotTracker struct {
@@ -82,7 +83,7 @@ func (t *BotTracker) formatPriceChange(cData api.CoinData, config *BotTrackerCon
 		change = cData.SevenDailyChangePercentage
 	default:
 		abbreviation = "24h"
-		fmt.Println("an unknown price change timespan was given", config.Timespan, "defaulting to 24h")
+		log.Warn("an unknown price change timespan was given", config.Timespan, "defaulting to 24h")
 	}
 
 	return fmt.Sprintf("%s: %s%%", abbreviation, strconv.FormatFloat(change, 'f', 2, 64))
@@ -98,36 +99,36 @@ func (t *BotTracker) Track(intervals ...time.Duration) {
 
 	go func() {
 		for {
-			fmt.Printf("Getting latest price data price for %s...\n", t.coinID)
+			log.Infof("Getting latest price data price for %s...\n", t.coinID)
 			coinData, err := t.coinAPI.GetCoinData(t.coinID, t.config.Currency)
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Error("Error occurred while getting coin data", err)
 			}
 
-			fmt.Printf("Updating bot status...")
+			log.Info("Updating bot status...")
 			formattedPrice := t.formatPrice(coinData)
 			err = t.discordAPI.UpdateBotNickname(formattedPrice)
 			if err != nil {
-				fmt.Println("Error occurred while updating bot nickname:", err.Error())
+				log.Error("Error occurred while updating bot nickname:", err)
 			}
 
 			formattedPriceChange := t.formatPriceChange(coinData, t.config)
 			err = t.discordAPI.UpdateBotActivity("online", discordgo.ActivityTypeWatching, formattedPriceChange)
 			if err != nil {
-				fmt.Println("Error occurred while updating bot nickname:", err.Error())
+				log.Error("Error occurred while updating bot nickname:", err)
 			}
 
 			// update the image once (5min cooldown)
 			if !t.hasUpdatedImage {
 				err = t.discordAPI.UpdateBotAvatar(coinData.Image)
 				if err != nil {
-					fmt.Println("Error occurred while updating bot avatar:", err.Error())
+					log.Error("Error occurred while updating bot avatar:", err)
 				} else {
 					t.hasUpdatedImage = true
 				}
 			}
 
-			fmt.Printf("Update completed! Sleeping for: %s\n", interval)
+			log.Infof("Update completed! Sleeping for: %s\n", interval)
 
 			time.Sleep(interval)
 		}

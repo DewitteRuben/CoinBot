@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type CoinData struct {
@@ -66,7 +68,7 @@ func (hc HttpClient) GetJSONObject(url string) (map[string]interface{}, error) {
 
 	stringResult := string(data)
 	if strings.Contains(stringResult, "error") {
-		fmt.Println("error occurred while parsing JSON\n", stringResult)
+		log.Error("error occurred while parsing JSON", stringResult)
 		return nil, errors.New("api error has occurred")
 	}
 
@@ -101,7 +103,7 @@ func (hc HttpClient) GetJSONArray(url string) ([]interface{}, error) {
 
 	stringResult := string(data)
 	if strings.Contains(stringResult, "error") {
-		fmt.Println("error occurred while parsing JSON\n", stringResult)
+		log.Error("Error occurred while parsing JSON", stringResult)
 		return nil, errors.New("api error has occurred")
 	}
 

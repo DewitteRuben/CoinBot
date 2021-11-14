@@ -4,12 +4,12 @@ import (
 	"btcbot/api"
 	"btcbot/tracker"
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -25,18 +25,23 @@ func init() {
 	flag.StringVar(&Currency, "currency", "usd", "Currency to represent coin in")
 	flag.StringVar(&PriceChangeTimespan, "pChange", "24h", "The price change timespan to look at")
 	flag.Parse()
+
+	log.SetOutput(os.Stdout)
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
 }
 
 func main() {
 	session, err := discordgo.New("Bot " + Token)
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
+		log.Fatal("error creating Discord session,", err)
 		return
 	}
 
 	err = session.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
+		log.Fatal("error opening connection,", err)
 		return
 	}
 
@@ -54,7 +59,7 @@ func main() {
 
 	botTracker.Track()
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	log.Info("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc

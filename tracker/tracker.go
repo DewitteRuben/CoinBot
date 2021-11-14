@@ -119,6 +119,10 @@ func (t *BotTracker) Track(intervals ...time.Duration) {
 			coinData, err := t.coinAPI.GetCoinData(t.coinID, t.config.Currency)
 			if err != nil {
 				log.Error("Error occurred while getting coin data", err)
+
+				time.Sleep(time.Minute) // wait and try again
+
+				continue
 			}
 
 			log.Info("Updating bot status...")

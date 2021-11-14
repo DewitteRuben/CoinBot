@@ -54,7 +54,7 @@ func main() {
 
 	botTracker, err := tracker.NewBotTracker(config, session)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	botTracker.Track()

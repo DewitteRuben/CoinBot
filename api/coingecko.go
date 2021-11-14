@@ -57,9 +57,13 @@ func (hc HttpClient) GetJSONObject(url string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
+	defer func() {
+		if res.Body != nil {
+			res.Body.Close()
+		} else {
+			log.Debugf("body for GetJSONObject is empty (%s)", url)
+		}
+	}()
 
 	data, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
@@ -92,9 +96,13 @@ func (hc HttpClient) GetJSONArray(url string) ([]interface{}, error) {
 		return nil, err
 	}
 
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
+	defer func() {
+		if res.Body != nil {
+			res.Body.Close()
+		} else {
+			log.Debugf("body for getJSONArray is empty (%s)", url)
+		}
+	}()
 
 	data, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {

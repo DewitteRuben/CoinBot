@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 )
 
 type DiscordAPI struct {
@@ -38,7 +39,11 @@ func (dc *DiscordAPI) UpdateBotAvatar(url string) error {
 	}
 
 	defer func() {
-		_ = resp.Body.Close()
+		if resp.Body != nil {
+			resp.Body.Close()
+		} else {
+			log.Debugf("body for UpdateBotAvatar is empty (%s)", url)
+		}
 	}()
 
 	img, err := ioutil.ReadAll(resp.Body)

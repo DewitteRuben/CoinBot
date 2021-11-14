@@ -5,7 +5,7 @@ while read line; do
 
     cmd="./bot -token $token -coin $coin"
 
-    $cmd
+    $cmd &
 
     sleep 1
 done
